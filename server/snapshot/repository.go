@@ -92,15 +92,19 @@ func (r *Repository) UpdateLatestVersion(ctx context.Context, snapshot *Snapshot
 }
 
 // GetSnapshotByFields returns full snapshot data
-func (r *Repository) GetSnapshotByFields(ctx context.Context, namespace, name, version string, latest bool) (*Snapshot, error) {
+func (r *Repository) GetSnapshotByFields(ctx context.Context, namespace, name, version string, latest *bool) (*Snapshot, error) {
 	snapshot := &Snapshot{
 		Namespace: namespace,
 		Name:      name,
 	}
 	var query strings.Builder
 	var args []interface{}
-	query.WriteString(`SELECT id, version, latest from snapshots where namespace=$1 and name=$2 and latest=$3`)
-	args = append(args, namespace, name, latest)
+	query.WriteString(`SELECT id, version, latest from snapshots where namespace=$1 and name=$2`)
+	args = append(args, namespace, name)
+	if latest != nil {
+		query.WriteString(` and latest=$3`)
+		args = append(args, latest)
+	}
 	if version != "" {
 		query.WriteString(` and version=$4`)
 		args = append(args, version)
